@@ -2,6 +2,11 @@ var trex, trex_running, trex_collided;
 var ground, invisibleGround, groundImage;
 var cloud;
 var obs1,obs2,obs3,obs4,obs5,obs6;
+var obsgroup,cloudsgroup
+var PLAY=1;
+var END=0;
+var gamestate=PLAY
+var score=0;
 function preload() {
     trex_running = loadAnimation("trex1.png", "trex3.png", "trex4.png");
     trex_collided = loadImage("trex_collided.png");
@@ -20,6 +25,7 @@ function setup() {
     trex = createSprite(50,160,20,50);
     trex.addAnimation("running", trex_running);
     trex.scale = 0.5;
+    trex.debug=true;
     //create a ground sprite
     ground = createSprite(200,180,400,20);
     ground.addImage("ground",groundImage);
@@ -28,24 +34,35 @@ function setup() {
     // create invisible ground
     invisibleGround=createSprite(200,190,400,15);
     invisibleGround.visible=false
+    obsgroup=createGroup();
+    cloudsgroup=createGroup();
 
 }
 function draw() {
     background(255);
-    //jump when the space button is pressed
-    if (keyDown("space") && trex.y>=159) {
-        trex.velocityY = -10;
-    }
-    //add gravity
-    trex.velocityY = trex.velocityY + 0.8
-    //infinite ground
-    if (ground.x < 0) {
-        ground.x = ground.width / 2;
+    text("score: "+score,450,50)
+    if(gamestate==PLAY) {
+        //jump when the space button is pressed
+        if (keyDown("space") && trex.y>=159) {
+            trex.velocityY = -10;
+        }
+        //add gravity
+        trex.velocityY = trex.velocityY + 0.8
+        //infinite ground
+        if (ground.x < 0) {
+            ground.x = ground.width / 2;
+        }
+        spawnclouds()
+        spawnobstacles()
+        if(obsgroup.isTouching(trex)){
+            gamestate=END
+        }
+    }else{
+        ground.velocityX=0;
+        obsgroup.setVelocityXEach(0);
+        cloudsgroup.setVelocityXEach(0);
     }
     trex.collide(invisibleGround);
-    spawnclouds()
-    spawnobstacles()
-    
     drawSprites();
 }
 function spawnclouds(){
@@ -59,6 +76,7 @@ function spawnclouds(){
         cloud1.depth=1
         trex.depth=cloud1.depth+1
         cloud1.lifetime=600/3+50
+        cloudsgroup.add(cloud1)
     }
     
 }
@@ -90,6 +108,7 @@ function spawnobstacles(){
         }
         
         obstacles.lifetime=600/3+10
+        obsgroup.add(obstacles)
 
     }
     
