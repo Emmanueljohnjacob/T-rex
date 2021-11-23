@@ -7,6 +7,8 @@ var PLAY=1;
 var END=0;
 var gamestate=PLAY
 var score=0;
+var gameoverimg,Gameover;
+var restart,restartimg
 function preload() {
     trex_running = loadAnimation("trex1.png", "trex3.png", "trex4.png");
     trex_collided = loadImage("trex_collided.png");
@@ -18,14 +20,18 @@ function preload() {
     obs4=loadImage("obstacle4.png");
     obs5=loadImage("obstacle5.png");
     obs6=loadImage("obstacle6.png");
+    gameoverimg=loadImage("gameOver.png");
+    restartimg=loadImage("restart.png");
 }
 function setup() {
     createCanvas(600, 200);
     //create a trex sprite
     trex = createSprite(50,160,20,50);
     trex.addAnimation("running", trex_running);
+    trex.addAnimation("collided", trex_collided);
     trex.scale = 0.5;
     trex.debug=true;
+    trex.setCollider("circle",0,0,40)
     //create a ground sprite
     ground = createSprite(200,180,400,20);
     ground.addImage("ground",groundImage);
@@ -36,12 +42,20 @@ function setup() {
     invisibleGround.visible=false
     obsgroup=createGroup();
     cloudsgroup=createGroup();
-
+    Gameover=createSprite(300,100);
+    Gameover.addImage(gameoverimg)
+    restart=createSprite(300,150);
+    restart.addImage(restartimg)
+    Gameover.scale=0.5
+    restart.scale=0.5
+    Gameover.visible=false
+    restart.visible=false
 }
 function draw() {
     background(255);
     text("score: "+score,450,50)
     if(gamestate==PLAY) {
+        score+=Math.round(frameCount/80)
         //jump when the space button is pressed
         if (keyDown("space") && trex.y>=159) {
             trex.velocityY = -10;
@@ -58,9 +72,15 @@ function draw() {
             gamestate=END
         }
     }else{
+        trex.changeAnimation("collided",trex_collided)
         ground.velocityX=0;
         obsgroup.setVelocityXEach(0);
         cloudsgroup.setVelocityXEach(0);
+        obsgroup.setLifetimeEach(2)
+        cloudsgroup.setLifetimeEach(-1)
+        trex.velocityY=0
+        Gameover.visible=true
+        restart.visible=true
     }
     trex.collide(invisibleGround);
     drawSprites();
