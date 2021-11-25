@@ -9,6 +9,7 @@ var gamestate=PLAY
 var score=0;
 var gameoverimg,Gameover;
 var restart,restartimg
+var jump,checkpoint,die;
 function preload() {
     trex_running = loadAnimation("trex1.png", "trex3.png", "trex4.png");
     trex_collided = loadImage("trex_collided.png");
@@ -22,6 +23,10 @@ function preload() {
     obs6=loadImage("obstacle6.png");
     gameoverimg=loadImage("gameOver.png");
     restartimg=loadImage("restart.png");
+    jump = loadSound ("jump.mp3");
+    checkpoint = loadSound ("checkpoint.mp3")
+    die = loadSound ("die.mp3")
+
 }
 function setup() {
     createCanvas(600, 200);
@@ -31,7 +36,8 @@ function setup() {
     trex.addAnimation("collided", trex_collided);
     trex.scale = 0.5;
     trex.debug=true;
-    trex.setCollider("circle",0,0,40)
+    //trex.setCollider("circle",0,0,40)
+    trex.setCollider("rectangle",0,0,250,trex.height)
     //create a ground sprite
     ground = createSprite(200,180,400,20);
     ground.addImage("ground",groundImage);
@@ -56,9 +62,14 @@ function draw() {
     text("score: "+score,450,50)
     if(gamestate==PLAY) {
         score+=Math.round(frameCount/80)
+        if(score%1000==0&&score!=0){
+            checkpoint.play()
+        }
+        ground.velocityX=-(6+4/100)
         //jump when the space button is pressed
         if (keyDown("space") && trex.y>=159) {
-            trex.velocityY = -10;
+            trex.velocityY = -12;
+            jump.play()
         }
         //add gravity
         trex.velocityY = trex.velocityY + 0.8
@@ -69,7 +80,10 @@ function draw() {
         spawnclouds()
         spawnobstacles()
         if(obsgroup.isTouching(trex)){
-            gamestate=END
+            //gamestate=END
+            //die.play()
+            trex.velocityY=-12;
+            jump.play()
         }
     }else{
         trex.changeAnimation("collided",trex_collided)
@@ -103,7 +117,7 @@ function spawnclouds(){
 function spawnobstacles(){
     if(frameCount%60==0){
         var obstacles=createSprite(600,160,10,40);
-       obstacles.velocityX=-4
+       obstacles.velocityX=-(6+score/100)
        var rand=Math.round(random(1,6));
        switch(rand){
            case 1:obstacles.addImage(obs1);
